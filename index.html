@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Serbia Visarun Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url(background.jpg);
+      background-size: cover;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background-color: #cfcfcfc7;
+      border-radius: 10px;
+      padding: 25px;
+    }
+    input[type="date"] {
+      width: 350px;
+      display: block;
+      margin: 0 auto;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      background-color: #e2e2e2;
+      transition-duration: 0.5s;
+    }
+    input:hover {
+        transition-duration: 0.5s;
+        background-color: #c2c2c2;
+    }
+    button {
+      width: 50%;
+      display: block;
+      margin: 0 auto;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 20px;
+      border: none;
+      cursor: pointer;
+      transition-duration: 0.5s;
+      border-radius: 10px;
+    }
+    button:hover {
+        background-color: #2e8631;
+        transition-duration: 0.5s;
+    }
+    #result {
+      margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .donate-button {
+      margin-top: 40px;
+      text-align: center;
+    }
+    .donate-button a {
+      text-decoration: none;
+      color: white;
+    }
+    .donate-button button {
+    background-color: #c21004;
+    width: 90%;
+    font-size: 15px;
+    transition-duration: 0.5s;
+    }
+    .donate-button:hover button{
+        background-color: red;
+        transition-duration: 0.5s;
+    }
+    .creator-text {
+        padding-top: 10px;
+        text-align: center;
+    }
+    .social-icons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .social-icons a {
+      display: inline-block;
+      margin: 0 10px;
+    }
+    .social-icons img {
+      width: 32px;
+      height: 32px;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+    .social-icons img:hover {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Сербия - Калькулятор Визарана</h1>
+    <input type="date" id="dateInput">
+    <button onclick="calculateDays()">Расcчитать</button>
+    <div id="result"></div>
+    <div>
+        <h1>FAQ</h1>
+        <p>Сегодня я поел а завтра не знаю. Может быть поем а может и нет</p>
+    </div>
+    <div class="donate-button">
+        <button title="Помоги визаранщику и поддержки проект" onclick="window.open ('https://www.tinkoff.ru/rm/bykovskiy.denis18/Zv5F255114')">Donate</button>
+    </div>
+    <p class="creator-text">Created by Denis Bykovski 2023</p>
+    <div class="social-icons">
+        <a href="https://t.me/nibelur"><img src="telegram.png" alt="Telegram"></a>
+        <a href="https://github.com/NibeluR"><img src="github.png" alt="GitHub"></a>
+        <a href="https://www.linkedin.com/in/denisbykovski/"><img src="linkedin.png" alt="LinkedIn"></a>
+      </div>
+  </div>
+
+<script>
+    function calculateDays() {
+      var dateInput = document.getElementById("dateInput").value;
+      
+      if (!dateInput) {
+        document.getElementById("result").innerText = "Пожалуйста введите дату.";
+        return;
+      }
+      
+      var selectedDate = new Date(dateInput);
+      selectedDate.setHours(0, 0, 0, 0); // Set time to midnight
+      var currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0); // Set time to midnight
+      var timeDiff = Math.abs(currentDate.getTime() - selectedDate.getTime());
+      var diffDays = Math.floor(timeDiff / (1000 * 3600 * 24));
+
+      var leaveDate = new Date(selectedDate.getTime() + (30 * 24 * 60 * 60 * 1000));
+      leaveDate.setDate(leaveDate.getDate() - 1); // Subtract 1 day from leaveDate
+      var formattedDate = leaveDate.toLocaleDateString("ru-RU", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "long"
+      });
+
+      if (diffDays > 30) {
+        document.getElementById("result").innerText = "Вы превысили срок пребывания в 30 дней! Вы должны были покинуть страну в " + formattedDate;
+      } else {
+        var daysLeft = 30 - diffDays;
+        document.getElementById("result").innerText = "Осталось дней: " + daysLeft + ". Вы должны выехать в " + formattedDate;
+      }
+    }
+  </script>
+</body>
+</html>
