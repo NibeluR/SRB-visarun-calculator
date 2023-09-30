@@ -42,7 +42,6 @@
     }
     button {
       width: 50%;
-      display: block;
       margin: 0 auto;
       padding: 10px;
       background-color: #4CAF50;
@@ -56,6 +55,32 @@
     button:hover {
         background-color: #2e8631;
         transition-duration: 0.5s;
+    }
+
+    .buttons-container {
+      display: flex;
+    }
+    #countbutton {
+      display: block;
+    }
+    #notificationButton {
+      display: block;
+      background-color: #e7e7e7;
+      color: white;
+      padding: 10px 10px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-left: -95px;
+      background-image: url(notify.png);
+      background-size: 70%;
+      background-repeat: no-repeat;
+      background-position: center;
+      width: 45px;
+      height: 45px;
+    }
+    #notificationButton:hover {
+      background-color: #beb9b9; /* Darker red color on hover */
     }
     #result {
       margin-top: 20px;
@@ -157,6 +182,12 @@
         .creator-text {
             font-size: 16px;
         }
+        #notificationButton {
+            height: 60px;
+            width: 60px;
+            background-size: 50%;
+            padding-right: 10%;
+    }
 }
 </style>
 </head>
@@ -164,7 +195,10 @@
   <div class="container">
     <h1>Сербия - Калькулятор Визарана✈️🚗</h1>
     <input type="date" id="dateInput">
-    <button onclick="calculateDays()">Расcчитать</button>
+    <div class="buttons-container">
+      <button id="countbutton" onclick="calculateDays()">Расcчитать</button>
+      <button id="notificationButton" style="display: none;" onclick="showNotification()" title="Добавить оповещение в Календарь"></button>
+    </div>
     <div id="result"></div>
     <div>
         <h1>FAQ</h1>
@@ -184,38 +218,115 @@
       </div>
   </div>
 
-  <script>
-      function calculateDays() {
-        var dateInput = document.getElementById("dateInput").value;
-        
-        if (!dateInput) {
-          document.getElementById("result").innerText = "Пожалуйста введите дату последнего въезда в страну";
-          return;
-        }
-        
-        var selectedDate = new Date(dateInput);
-        selectedDate.setHours(0, 0, 0, 0); // Set time to midnight
-        var currentDate = new Date();
-        currentDate.setHours(0, 0, 0, 0); // Set time to midnight
-        var timeDiff = Math.abs(currentDate.getTime() - selectedDate.getTime());
-        var diffDays = Math.floor(timeDiff / (1000 * 3600 * 24));
-
-        var leaveDate = new Date(selectedDate.getTime() + (30 * 24 * 60 * 60 * 1000));
-        leaveDate.setDate(leaveDate.getDate() - 1); // Count 1 day less from leaveDate for 30 total
-        var formattedDate = leaveDate.toLocaleDateString("ru-RU", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          weekday: "long"
-        });
-
-        if (diffDays > 30) {
-          document.getElementById("result").innerText = "Вы превысили срок пребывания в 30 дней! Вы должны были покинуть страну в " + formattedDate;
-        } else {
-          var daysLeft = 30 - diffDays;
-          document.getElementById("result").innerText = "Осталось дней: " + daysLeft + ". Вы должны выехать в " + formattedDate;
-        }
+<script>
+    function calculateDays() {
+      var dateInput = document.getElementById("dateInput").value;
+      
+      if (!dateInput) {
+        document.getElementById("result").innerText = "Пожалуйста введите дату последнего въезда в страну";
+        return;
       }
-  </script>
+
+      var selectedDate = new Date(dateInput);
+      selectedDate.setHours(0, 0, 0, 0); // Set time to midnight
+      var currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0); // Set time to midnight
+      var timeDiff = Math.abs(currentDate.getTime() - selectedDate.getTime());
+      var diffDays = Math.floor(timeDiff / (1000 * 3600 * 24));
+
+      var leaveDate = new Date(selectedDate.getTime() + (30 * 24 * 60 * 60 * 1000));
+      leaveDate.setDate(leaveDate.getDate() - 1); // Count 1 day less from leaveDate for 30 total
+      var formattedDate = leaveDate.toLocaleDateString("ru-RU", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "long"
+      });
+
+      if (diffDays > 30) {
+        document.getElementById("result").innerText = "Вы превысили срок пребывания в 30 дней! Вы должны были покинуть страну в " + formattedDate;
+        // Show the notification button when conditions are met
+        var notificationButton = document.getElementById("notificationButton");
+        notificationButton.style.display = "none";
+      } else {
+        var daysLeft = 30 - diffDays;
+        document.getElementById("result").innerText = "Осталось дней: " + daysLeft + ". Вы должны выехать в " + formattedDate;
+        
+        // Hide the notification button when conditions are not met
+        var notificationButton = document.getElementById("notificationButton");
+        notificationButton.style.display = "block";
+
+        // Set the event details for the calendar event
+        var eventTitle = "Визаран - обновление визового срока";
+        var eventDescription = "Вы запланировали выезд из страны на " + leaveDate.toDateString();
+        var eventLocation = "Сербия";
+
+        // Set the start and end date times for the event
+        var startDate = new Date(leaveDate);
+        var endDate = new Date(startDate.getTime() + (1 * 60 * 60 * 1000)); // Add 1 hour for event duration
+
+        // Save the event details to the notificationButton element
+        notificationButton.onclick = function() {
+            createICSFileAndOpen(eventTitle, eventDescription, eventLocation, startDate, endDate);
+    }
+      }   
+    }
+
+    function createICSFileAndOpen(eventTitle, eventDescription, eventLocation, startDate, endDate) {
+    const icsContent = generateICSFile(eventTitle, eventDescription, eventLocation, startDate, endDate);
+
+    // Create a Blob with the .ics content
+    const blob = new Blob([icsContent], { type: 'text/calendar' });
+
+    // Create a data URI for the Blob
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    // Create an anchor element
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = 'event.ics';
+
+    // Append the anchor element to the document body
+    document.body.appendChild(a);
+
+    // Display a message to the user
+    alert("Файл календаря загружен. Пожалуйста используйте приложение Календаря чтобы сохранить запланированное событие.");
+    a.click();
+
+    // Clean up: Remove the anchor element from the document body and revoke the Blob URL
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(blobUrl);
+}
+
+
+function generateICSFile(eventTitle, eventDescription, eventLocation, startDate, endDate) {
+    const formatDate = (date) => {
+        const year = date.getUTCFullYear();
+        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+        const day = date.getUTCDate().toString().padStart(2, '0');
+        const hours = date.getUTCHours().toString().padStart(2, '0');
+        const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+        const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+        return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+    };
+
+    const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${eventTitle}
+DESCRIPTION:${eventDescription}
+LOCATION:${eventLocation}
+DTSTART;TZID=UTC:${formatDate(startDate)}
+DTEND;TZID=UTC:${formatDate(endDate)}
+END:VEVENT
+END:VCALENDAR`;
+
+    return icsContent;
+}
+
+function formatDate(date) {
+    return date.toISOString().replace(/-|:|\.\d+/g, '');
+}
+</script>
 </body>
 </html>
