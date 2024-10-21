@@ -278,60 +278,64 @@
   </div>
 
 <script>
-    var eventTitle, eventDescription, eventLocation, startDate, endDate;
+var eventTitle, eventDescription, eventLocation, startDate, endDate;
 
-    function calculateDays() {
-      var dateInput = document.getElementById("dateInput").value;
-      
-      if (!dateInput) {
-        document.getElementById("result").innerText = "Пожалуйста, введите дату последнего въезда в страну";
-        return;
-      }
+function calculateDays() {
+  var dateInput = document.getElementById("dateInput").value;
 
-      var selectedDate = new Date(dateInput);
-      selectedDate.setHours(0, 0, 0, 0); // Set time to midnight
-      var currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0); // Set time to midnight
-      var timeDiff = Math.abs(currentDate.getTime() - selectedDate.getTime());
-      var diffDays = Math.floor(timeDiff / (1000 * 3600 * 24));
+  if (!dateInput) {
+    document.getElementById("result").innerText = "Пожалуйста, введите дату последнего въезда в страну";
+    return;
+  }
 
-      var leaveDate = new Date(selectedDate.getTime() + (30 * 24 * 60 * 60 * 1000));
-      leaveDate.setDate(leaveDate.getDate() - 1); // Count 1 day less from leaveDate for 30 total
-      var formattedDate = leaveDate.toLocaleDateString("ru-RU", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        weekday: "long"
-      });
+  var selectedDate = new Date(dateInput);
+  selectedDate.setHours(0, 0, 0, 0); // Set time to midnight
+  var currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0); // Set time to midnight
+  var timeDiff = currentDate.getTime() - selectedDate.getTime(); // Calculate difference in milliseconds
+  var diffDays = Math.floor(timeDiff / (1000 * 3600 * 24)); // Difference in days
 
-      if (diffDays > 30) {
-        document.getElementById("result").innerText = "Вы превысили срок пребывания в 30 дней! Вы должны были покинуть страну в " + formattedDate;
-        // Show the notification button when conditions are met
-        var notificationButton = document.getElementById("notificationButton");
-        notificationButton.style.display = "none";
-      } else {
-        var daysLeft = 30 - diffDays;
-        document.getElementById("result").innerText = "Осталось дней: " + daysLeft + ". Вы должны выехать в " + formattedDate;
-        
-        // Hide the notification button when conditions are not met
-        var notificationButton = document.getElementById("notificationButton");
-        notificationButton.style.display = "block";
+  if (diffDays < 0) {
+    document.getElementById("result").innerText = "Вы ввели дату в будущем!";
+    return;
+  }
 
-        // Set the event details for the calendar event
-        eventTitle = "Визаран - обновление визового срока";
-        eventDescription = "Вы запланировали выезд из страны на " + leaveDate.toDateString();
-        eventLocation = "Сербия";
+  var leaveDate = new Date(selectedDate.getTime() + (30 * 24 * 60 * 60 * 1000)); // Add 30 days to selected date
+  var formattedDate = leaveDate.toLocaleDateString("ru-RU", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long"
+  });
 
-        // Set the start and end date times for the event
-        startDate = new Date(leaveDate);
-        endDate = new Date(startDate.getTime() + (1 * 60 * 60 * 1000)); // Add 1 hour for event duration
+  if (diffDays > 30) {
+    document.getElementById("result").innerText = "Вы превысили срок пребывания в 30 дней! Вы должны были покинуть страну в " + formattedDate;
+    // Hide the notification button when conditions are not met
+    var notificationButton = document.getElementById("notificationButton");
+    notificationButton.style.display = "none";
+  } else {
+    var daysLeft = 30 - diffDays;
+    document.getElementById("result").innerText = "Осталось дней: " + daysLeft + ". Вы должны выехать в " + formattedDate;
+    
+    // Show the notification button
+    var notificationButton = document.getElementById("notificationButton");
+    notificationButton.style.display = "block";
 
-        // Save the event details to the notificationButton element
-        notificationButton.onclick = function() {
-            showOverlay();
+    // Set the event details for the calendar event
+    eventTitle = "Визаран - обновление визового срока";
+    eventDescription = "Вы запланировали выезд из страны на " + leaveDate.toDateString();
+    eventLocation = "Сербия";
+
+    // Set the start and end date times for the event
+    startDate = new Date(leaveDate);
+    endDate = new Date(startDate.getTime() + (1 * 60 * 60 * 1000)); // Add 1 hour for event duration
+
+    // Save the event details to the notificationButton element
+    notificationButton.onclick = function() {
+        showOverlay();
     }
-      }   
-    }
+  }
+}
 
 
     function downloadEventICS() {
