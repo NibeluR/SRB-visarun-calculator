@@ -278,8 +278,6 @@
   </div>
 
 <script>
-var eventTitle, eventDescription, eventLocation, startDate, endDate;
-
 function calculateDays() {
   var dateInput = document.getElementById("dateInput").value;
 
@@ -289,7 +287,7 @@ function calculateDays() {
   }
 
   var selectedDate = new Date(dateInput);
-  selectedDate.setHours(0, 0, 0, 0); // Set time to midnight
+  selectedDate.setHours(0, 0, 0, 0); // Set time to midnight to avoid time-related issues
   var currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0); // Set time to midnight
   var timeDiff = currentDate.getTime() - selectedDate.getTime(); // Calculate difference in milliseconds
@@ -300,8 +298,10 @@ function calculateDays() {
     return;
   }
 
-  // Add 29 days instead of 30 to get the correct departure date
-  var leaveDate = new Date(selectedDate.getTime() + (29 * 24 * 60 * 60 * 1000));
+  // Calculate the correct departure date by adding 29 days to the entry date
+  var leaveDate = new Date(selectedDate);
+  leaveDate.setDate(leaveDate.getDate() + 29); // Add 29 days to the selected date to get 30 days including the selected date
+  
   var formattedDate = leaveDate.toLocaleDateString("ru-RU", {
     year: "numeric",
     month: "long",
@@ -338,10 +338,8 @@ function calculateDays() {
   }
 }
 
-    function downloadEventICS() {
-        createICSFileAndOpen(eventTitle, eventDescription, eventLocation, startDate, endDate);
-        closeOverlay();
-    }
+
+
 
 
 
