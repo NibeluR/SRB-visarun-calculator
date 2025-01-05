@@ -277,7 +277,7 @@
     </div>
   </div>
 
-<script>
+  <script>
 function calculateDays() {
   var dateInput = document.getElementById("dateInput").value;
 
@@ -298,10 +298,9 @@ function calculateDays() {
     return;
   }
 
-  // Calculate the correct departure date by adding 29 days to the entry date
   var leaveDate = new Date(selectedDate);
-  leaveDate.setDate(leaveDate.getDate() + 29); // Add 29 days to the selected date to get 30 days including the selected date
-  
+  leaveDate.setDate(leaveDate.getDate() + 29); // Add 29 days
+
   var formattedDate = leaveDate.toLocaleDateString("ru-RU", {
     year: "numeric",
     month: "long",
@@ -310,103 +309,108 @@ function calculateDays() {
   });
 
   if (diffDays > 30) {
-    document.getElementById("result").innerText = "Вы превысили срок пребывания в 30 дней! Вы должны были покинуть страну в " + formattedDate;
+    document.getElementById("result").innerText =
+      "Вы превысили срок пребывания в 30 дней! Вы должны были покинуть страну в " + formattedDate;
+
     // Hide the notification button when conditions are not met
     var notificationButton = document.getElementById("notificationButton");
     notificationButton.style.display = "none";
   } else {
     var daysLeft = 30 - diffDays;
-    document.getElementById("result").innerText = "Осталось дней: " + daysLeft + ". Вы должны выехать в " + formattedDate;
-    
+    document.getElementById("result").innerText =
+      "Осталось дней: " + daysLeft + ". Вы должны выехать в " + formattedDate;
+
     // Show the notification button
     var notificationButton = document.getElementById("notificationButton");
     notificationButton.style.display = "block";
 
-    // Set the event details for the calendar event
-    eventTitle = "Визаран - обновление визового срока";
-    eventDescription = "Вы запланировали выезд из страны на " + leaveDate.toDateString();
-    eventLocation = "Сербия";
+    // Save the event details for later use
+    window.eventDetails = {
+      title: "Визаран - обновление визового срока",
+      description: "Вы запланировали выезд из страны на " + leaveDate.toDateString(),
+      location: "Сербия",
+      startDate: leaveDate,
+      endDate: new Date(leaveDate.getTime() + 60 * 60 * 1000) // 1-hour event
+    };
 
-    // Set the start and end date times for the event
-    startDate = new Date(leaveDate);
-    endDate = new Date(startDate.getTime() + (1 * 60 * 60 * 1000)); // Add 1 hour for event duration
-
-    // Save the event details to the notificationButton element
-    notificationButton.onclick = function() {
-        showOverlay();
-    }
+    // Attach the `showOverlay` function to the button
+    notificationButton.onclick = function () {
+      showOverlay();
+    };
   }
 }
 
+function createICSFileAndOpen(eventTitle, eventDescription, eventLocation, startDate, endDate) {
+  const icsContent = generateICSFile(eventTitle, eventDescription, eventLocation, startDate, endDate);
 
+  // Create a Blob with the .ics content
+  const blob = new Blob([icsContent], { type: "text/calendar" });
 
+  // Create a data URI for the Blob
+  const blobUrl = window.URL.createObjectURL(blob);
 
+  // Create an anchor element
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = "event.ics";
 
+  // Append the anchor element to the document body
+  document.body.appendChild(a);
 
-    function createICSFileAndOpen(eventTitle, eventDescription, eventLocation, startDate, endDate) {
-    const icsContent = generateICSFile(eventTitle, eventDescription, eventLocation, startDate, endDate);
+  // Display a message to the user
+  alert(
+    "Файл события сохранен. Пожалуйста, используйте приложение Календаря (рекомендуется ПК) чтобы внести запланированное событие."
+  );
+  a.click();
 
-    // Create a Blob with the .ics content
-    const blob = new Blob([icsContent], { type: 'text/calendar' });
-
-    // Create a data URI for the Blob
-    const blobUrl = window.URL.createObjectURL(blob);
-
-    // Create an anchor element
-    const a = document.createElement('a');
-    a.href = blobUrl;
-    a.download = 'event.ics';
-
-    // Append the anchor element to the document body
-    document.body.appendChild(a);
-
-    // Display a message to the user
-    alert("Файл события сохранен. Пожалуйста, используйте приложение Календаря (рекомендуется ПК) чтобы внести запланированное событие.");
-    a.click();
-
-    // Clean up: Remove the anchor element from the document body and revoke the Blob URL
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(blobUrl);
+  // Clean up
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(blobUrl);
 }
 
-
 function generateICSFile(eventTitle, eventDescription, eventLocation, startDate, endDate) {
-    const formatDate = (date) => {
-        const year = date.getUTCFullYear();
-        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-        const day = date.getUTCDate().toString().padStart(2, '0');
-        const hours = date.getUTCHours().toString().padStart(2, '0');
-        const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-        const seconds = date.getUTCSeconds().toString().padStart(2, '0');
-        return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
-    };
+  const formatDate = (date) => {
+    const year = date.getUTCFullYear();
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+    const day = date.getUTCDate().toString().padStart(2, "0");
+    const hours = date.getUTCHours().toString().padStart(2, "0");
+    const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+    const seconds = date.getUTCSeconds().toString().padStart(2, "0");
+    return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+  };
 
-    const icsContent = `BEGIN:VCALENDAR
+  const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 SUMMARY:${eventTitle}
 DESCRIPTION:${eventDescription}
 LOCATION:${eventLocation}
-DTSTART;TZID=UTC:${formatDate(startDate)}
-DTEND;TZID=UTC:${formatDate(endDate)}
+DTSTART:${formatDate(startDate)}
+DTEND:${formatDate(endDate)}
 END:VEVENT
 END:VCALENDAR`;
 
-    return icsContent;
-}
-
-function formatDate(date) {
-    return date.toISOString().replace(/-|:|\.\d+/g, '');
+  return icsContent;
 }
 
 function showOverlay() {
-          document.getElementById("overlay").style.display = "flex";
-      }
+  document.getElementById("overlay").style.display = "flex";
+}
 
-      // Function to close the overlay
-      function closeOverlay() {
-          document.getElementById("overlay").style.display = "none";
-      }
-</script>
+function closeOverlay() {
+  document.getElementById("overlay").style.display = "none";
+}
+
+function downloadEventICS() {
+  if (window.eventDetails) {
+    const { title, description, location, startDate, endDate } = window.eventDetails;
+    createICSFileAndOpen(title, description, location, startDate, endDate);
+    closeOverlay();
+  } else {
+    alert("Данные события отсутствуют. Пожалуйста, сначала рассчитайте дату.");
+  }
+}
+
+  </script>
 </body>
 </html>
