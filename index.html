@@ -37,6 +37,39 @@
       background-color: #e2e2e2;
       transition-duration: 0.5s;
     }
+
+    input[type="text"] {
+      width: 350px;
+      display: block;
+      margin: 0 auto;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      background-color: #e2e2e2;
+      transition-duration: 0.5s;
+    }
+
+    .date-container {
+      text-align: center !important; /* Centers the input horizontally */
+      margin: 20px auto; /* Vertical margin and horizontal centering */
+    }
+
+    #dateInput {
+      display: inline-block; /* Allows centering with text-align */
+      width: 200px; /* Adjust width as needed */
+      padding: 8px; /* Optional: Improves appearance */
+    }
+
+    .flatpickr-input {
+      text-align: center; /* Centers the text inside the input */
+    }
+
+    .flatpickr-calendar {
+      left: 50% !important; /* Center the calendar horizontally */
+      transform: translateX(-50%) !important; /* Adjust for exact centering */
+    }
+
+
     input:hover {
         transition-duration: 0.5s;
         background-color: #c2c2c2;
@@ -244,30 +277,97 @@
 <body>
   <div class="container">
     <h1>Сербия - Калькулятор Визарана✈️🚗</h1>
-    <input type="date" id="dateInput">
+    <div class="date-container">
+      <input type="text" id="dateInput" placeholder="Выберите дату последнего въезда">
+    </div>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <script>
+      // Initialize Flatpickr and store the instance
+      const fp = flatpickr("#dateInput", {
+        dateFormat: "d/m/Y", // Display format: DD/MM/YYYY
+        altInput: true,
+        altFormat: "d/m/Y",
+        locale: "ru" // Set Russian locale
+      });
+
+      function calculateDays() {
+        // Get the selected date from Flatpickr (returns an array, take the first item)
+        const selectedDate = fp.selectedDates[0];
+
+        if (!selectedDate) {
+          document.getElementById("result").innerText = "Пожалуйста, введите дату последнего въезда в страну";
+          return;
+        }
+
+        // Work with the Date object directly
+        selectedDate.setHours(0, 0, 0, 0); // Set time to midnight
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0); // Set time to midnight
+        const timeDiff = currentDate.getTime() - selectedDate.getTime(); // Difference in milliseconds
+        const diffDays = Math.floor(timeDiff / (1000 * 3600 * 24)); // Difference in days
+
+        if (diffDays < 0) {
+          document.getElementById("result").innerText = "Вы ввели дату в будущем!";
+          return;
+        }
+
+        const leaveDate = new Date(selectedDate);
+        leaveDate.setDate(leaveDate.getDate() + 29); // Add 29 days
+
+        const formattedDate = leaveDate.toLocaleDateString("ru-RU", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          weekday: "long"
+        });
+
+        if (diffDays > 30) {
+          document.getElementById("result").innerText =
+            "Вы превысили срок пребывания в 30 дней! Вы должны были покинуть страну в " + formattedDate;
+          document.getElementById("notificationButton").style.display = "none";
+        } else {
+          const daysLeft = 30 - diffDays;
+          document.getElementById("result").innerText =
+            "Осталось дней: " + daysLeft + ". Вы должны выехать в " + formattedDate;
+          document.getElementById("notificationButton").style.display = "block";
+
+          // Save event details
+          window.eventDetails = {
+            title: "Визаран - обновление визового срока",
+            description: "Вы запланировали выезд из страны на " + leaveDate.toDateString(),
+            location: "Сербия",
+            startDate: leaveDate,
+            endDate: new Date(leaveDate.getTime() + 60 * 60 * 1000) // 1-hour event
+          };
+        }
+      }
+    </script>
+
     <div class="buttons-container">
       <button id="countbutton" onclick="calculateDays()">Расcчитать</button>
-      <button class="icon-bell-alt" id="notificationButton" style="display: none;" onclick="showNotification()" title="Добавить оповещение в Календарь"></button>
+      <button class="icon-bell-alt" id="notificationButton" style="display: none;" onclick="showOverlay()" title="Добавить оповещение в Календарь"></button>
     </div>
     <div id="result"></div>
     <div>
-        <h1>FAQ</h1>
-        <p>Граждане России и Беларуси могут находиться в Сербии без визы до 30 дней. Чтобы обнулить срок пребывания, достаточно выехать из страны и вернуться обратно. Счетчик 30 дней начнет действовать заново. После прибытия в страну необходимо зарегистрироваться в местном отделении полиции для Белого картона (в гостиницах эту функцию берет на себя администрация).</p>
+      <h1>FAQ</h1>
+      <p>Граждане России и Беларуси могут находиться в Сербии без визы до 30 дней. Чтобы обнулить срок пребывания, достаточно выехать из страны и вернуться обратно. Счетчик 30 дней начнет действовать заново. После прибытия в страну необходимо зарегистрироваться в местном отделении полиции для Белого картона (в гостиницах эту функцию берет на себя администрация).</p>
     </div>
-<!--disable group button         <div class="telegram-button">
-        <button title="Вступай в группу Поехали в Сербию!" onclick="window.open ('https://t.me/letsgotoserbia')">✈️Поехали в Сербию✈️</button>
-    </div> -->
     <div class="donate-button">
-        <button title="Помоги визаранщику и поддержи автора донатом" onclick="window.open ('https://www.donationalerts.com/r/nibelur')">Donate</button>
+      <button title="Помоги визаранщику и поддержи автора донатом" onclick="window.open('https://www.donationalerts.com/r/nibelur')">Donate</button>
     </div>
     <p class="creator-text">Created by Denis Bykovski 2023-2025</p>
     <div class="social-icons">
-        <a rel="nofollow" href="https://t.me/nibelur"><img src="telegram.png" alt="Telegram"></a>
-        <a rel="nofollow" href="https://github.com/NibeluR"><img src="github.png" alt="GitHub"></a>
-        <a rel="nofollow" href="https://www.linkedin.com/in/denisbykovski/"><img src="linkedin.png" alt="LinkedIn"></a>
-      </div>
+      <a rel="nofollow" href="https://t.me/nibelur"><img src="telegram.png" alt="Telegram"></a>
+      <a rel="nofollow" href="https://github.com/NibeluR"><img src="github.png" alt="GitHub"></a>
+      <a rel="nofollow" href="https://www.linkedin.com/in/denisbykovski/"><img src="linkedin.png" alt="LinkedIn"></a>
+    </div>
   </div>
-
 
   <div class="overlay-container" id="overlay">
     <div class="overlay-content">
@@ -278,108 +378,32 @@
   </div>
 
   <script>
-function calculateDays() {
-  var dateInput = document.getElementById("dateInput").value;
+    function createICSFileAndOpen(eventTitle, eventDescription, eventLocation, startDate, endDate) {
+      const icsContent = generateICSFile(eventTitle, eventDescription, eventLocation, startDate, endDate);
+      const blob = new Blob([icsContent], { type: "text/calendar" });
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = "event.ics";
+      document.body.appendChild(a);
+      alert("Файл события сохранен. Пожалуйста, используйте приложение Календаря (рекомендуется ПК) чтобы внести запланированное событие.");
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
+    }
 
-  if (!dateInput) {
-    document.getElementById("result").innerText = "Пожалуйста, введите дату последнего въезда в страну";
-    return;
-  }
+    function generateICSFile(eventTitle, eventDescription, eventLocation, startDate, endDate) {
+      const formatDate = (date) => {
+        const year = date.getUTCFullYear();
+        const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+        const day = date.getUTCDate().toString().padStart(2, "0");
+        const hours = date.getUTCHours().toString().padStart(2, "0");
+        const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+        const seconds = date.getUTCSeconds().toString().padStart(2, "0");
+        return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+      };
 
-  var selectedDate = new Date(dateInput);
-  selectedDate.setHours(0, 0, 0, 0); // Set time to midnight to avoid time-related issues
-  var currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0); // Set time to midnight
-  var timeDiff = currentDate.getTime() - selectedDate.getTime(); // Calculate difference in milliseconds
-  var diffDays = Math.floor(timeDiff / (1000 * 3600 * 24)); // Difference in days
-
-  if (diffDays < 0) {
-    document.getElementById("result").innerText = "Вы ввели дату в будущем!";
-    return;
-  }
-
-  var leaveDate = new Date(selectedDate);
-  leaveDate.setDate(leaveDate.getDate() + 29); // Add 29 days
-
-  var formattedDate = leaveDate.toLocaleDateString("ru-RU", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "long"
-  });
-
-  if (diffDays > 30) {
-    document.getElementById("result").innerText =
-      "Вы превысили срок пребывания в 30 дней! Вы должны были покинуть страну в " + formattedDate;
-
-    // Hide the notification button when conditions are not met
-    var notificationButton = document.getElementById("notificationButton");
-    notificationButton.style.display = "none";
-  } else {
-    var daysLeft = 30 - diffDays;
-    document.getElementById("result").innerText =
-      "Осталось дней: " + daysLeft + ". Вы должны выехать в " + formattedDate;
-
-    // Show the notification button
-    var notificationButton = document.getElementById("notificationButton");
-    notificationButton.style.display = "block";
-
-    // Save the event details for later use
-    window.eventDetails = {
-      title: "Визаран - обновление визового срока",
-      description: "Вы запланировали выезд из страны на " + leaveDate.toDateString(),
-      location: "Сербия",
-      startDate: leaveDate,
-      endDate: new Date(leaveDate.getTime() + 60 * 60 * 1000) // 1-hour event
-    };
-
-    // Attach the `showOverlay` function to the button
-    notificationButton.onclick = function () {
-      showOverlay();
-    };
-  }
-}
-
-function createICSFileAndOpen(eventTitle, eventDescription, eventLocation, startDate, endDate) {
-  const icsContent = generateICSFile(eventTitle, eventDescription, eventLocation, startDate, endDate);
-
-  // Create a Blob with the .ics content
-  const blob = new Blob([icsContent], { type: "text/calendar" });
-
-  // Create a data URI for the Blob
-  const blobUrl = window.URL.createObjectURL(blob);
-
-  // Create an anchor element
-  const a = document.createElement("a");
-  a.href = blobUrl;
-  a.download = "event.ics";
-
-  // Append the anchor element to the document body
-  document.body.appendChild(a);
-
-  // Display a message to the user
-  alert(
-    "Файл события сохранен. Пожалуйста, используйте приложение Календаря (рекомендуется ПК) чтобы внести запланированное событие."
-  );
-  a.click();
-
-  // Clean up
-  document.body.removeChild(a);
-  window.URL.revokeObjectURL(blobUrl);
-}
-
-function generateICSFile(eventTitle, eventDescription, eventLocation, startDate, endDate) {
-  const formatDate = (date) => {
-    const year = date.getUTCFullYear();
-    const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
-    const day = date.getUTCDate().toString().padStart(2, "0");
-    const hours = date.getUTCHours().toString().padStart(2, "0");
-    const minutes = date.getUTCMinutes().toString().padStart(2, "0");
-    const seconds = date.getUTCSeconds().toString().padStart(2, "0");
-    return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
-  };
-
-  const icsContent = `BEGIN:VCALENDAR
+      return `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 SUMMARY:${eventTitle}
@@ -389,28 +413,25 @@ DTSTART:${formatDate(startDate)}
 DTEND:${formatDate(endDate)}
 END:VEVENT
 END:VCALENDAR`;
+    }
 
-  return icsContent;
-}
+    function showOverlay() {
+      document.getElementById("overlay").style.display = "flex";
+    }
 
-function showOverlay() {
-  document.getElementById("overlay").style.display = "flex";
-}
+    function closeOverlay() {
+      document.getElementById("overlay").style.display = "none";
+    }
 
-function closeOverlay() {
-  document.getElementById("overlay").style.display = "none";
-}
-
-function downloadEventICS() {
-  if (window.eventDetails) {
-    const { title, description, location, startDate, endDate } = window.eventDetails;
-    createICSFileAndOpen(title, description, location, startDate, endDate);
-    closeOverlay();
-  } else {
-    alert("Данные события отсутствуют. Пожалуйста, сначала рассчитайте дату.");
-  }
-}
-
+    function downloadEventICS() {
+      if (window.eventDetails) {
+        const { title, description, location, startDate, endDate } = window.eventDetails;
+        createICSFileAndOpen(title, description, location, startDate, endDate);
+        closeOverlay();
+      } else {
+        alert("Данные события отсутствуют. Пожалуйста, сначала рассчитайте дату.");
+      }
+    }
   </script>
 </body>
 </html>
