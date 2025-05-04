@@ -1,0 +1,404 @@
+body {
+    font-family: Arial, sans-serif;
+    background-image: url(background.jpg);
+    background-attachment: fixed;
+    background-size: cover;
+    background-size: 100%;
+
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: -10px;
+}
+
+.container {
+    max-width: 500px;
+    margin: 0 auto;
+    background-color: #cfcfcfd5;
+    border-radius: 10px;
+    padding: 25px;
+}
+
+input[type="date"] {
+    width: 350px;
+    display: block;
+    margin: 0 auto;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background-color: #e2e2e2;
+    transition-duration: 0.5s;
+}
+
+input[type="text"] {
+    width: 350px;
+    display: block;
+    margin: 0 auto;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background-color: #e2e2e2;
+    transition-duration: 0.5s;
+}
+
+.date-container {
+    text-align: center !important;
+    /* Centers the input horizontally */
+    margin: 20px auto;
+    /* Vertical margin and horizontal centering */
+}
+
+#dateInput {
+    display: inline-block;
+    width: 200px;
+    padding: 8px;
+}
+
+.flatpickr-input {
+    text-align: center;
+}
+
+.flatpickr-calendar {
+    left: 50% !important;
+    /* Center the calendar horizontally */
+    transform: translateX(-50%) !important;
+    /* Adjust for exact centering */
+}
+
+
+input:hover {
+    transition-duration: 0.5s;
+    background-color: #c2c2c2;
+}
+
+button {
+    width: 50%;
+    margin: 0 auto;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 20px;
+    border: none;
+    cursor: pointer;
+    transition-duration: 0.5s;
+    border-radius: 10px;
+}
+
+button:hover {
+    background-color: #2e8631;
+    transition-duration: 0.5s;
+}
+
+.buttons-container {
+    display: flex;
+    justify-content: center;
+    /* Center the buttons */
+    align-items: center;
+    /* Vertically align the buttons */
+    position: relative;
+    /* Allow absolute positioning of children if needed */
+}
+
+#countbutton {
+    display: block;
+}
+
+#notificationButton {
+    display: block;
+    background-color: #e7e7e7;
+    color: white;
+    padding: 10px 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: -95px;
+    background-size: 70%;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 45px;
+    height: 45px;
+    color: #3d3d3d;
+    font-size: 25px;
+}
+
+#notificationButton:hover {
+    color: #4CAF50;
+}
+
+#result {
+    margin-top: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.donate-button {
+    margin-top: 0px;
+    text-align: center;
+}
+
+.telegram-button-promo {
+    margin: 0 auto;
+    text-align: center;
+    transition: width 0.3s ease;
+    /* Smooth transition for width change */
+    width: 50%;
+    /* Initial width before click */
+}
+
+.telegram-button-promo button {
+    margin-bottom: 0px;
+    margin-top: 10px;
+    text-align: center;
+    width: 100%;
+    display: block;
+    font-size: 15px;
+    transition-duration: 0.5s;
+    background-color: #0088cc;
+}
+
+.telegram-button-promo:hover button {
+    background-color: #27adf0;
+    transition-duration: 0.5s;
+}
+
+.donate-button a {
+    text-decoration: none;
+    color: white;
+}
+
+.donate-button button {
+    background-color: #c21004;
+    width: 90%;
+    font-size: 15px;
+    transition-duration: 0.5s;
+}
+
+.donate-button:hover button {
+    background-color: red;
+    transition-duration: 0.5s;
+}
+
+.creator-text {
+    padding-top: 10px;
+    text-align: center;
+}
+
+.social-icons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.social-icons a {
+    display: inline-block;
+    margin: 0 10px;
+}
+
+.social-icons img {
+    width: 32px;
+    height: 32px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.social-icons img:hover {
+    opacity: 1;
+}
+
+#openGameBtn {
+    background-color: orange;
+    font-size: 25px;
+    display: flex;
+    justify-content: center;
+    /* centers text horizontally */
+    align-items: center;
+    /* centers text vertically */
+    text-align: center;
+    width: 50px;
+    height: 50px;
+}
+
+#openGameBtn:hover {
+    background-color: black;
+    transition-duration: 2s;
+}
+
+h1,
+p {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+p {
+    font-size: 16px;
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+
+#gameOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    /* dark background for focus */
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+
+
+.overlay-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Style for the overlay content */
+.overlay-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* Style for the buttons */
+.overlay-button {
+    margin: 10px;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+}
+
+.overlay-close {
+    background-color: #f44336;
+    color: white;
+}
+
+.overlay-close:hover {
+    background-color: #ac261c;
+}
+
+.overlay-download {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.overlay-game {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hidden {
+    display: none;
+}
+
+#closeGameBtn {
+    all: unset;
+    /* Resets all inherited styles */
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+    z-index: 1001;
+    line-height: 1;
+    padding: 0;
+    background: none;
+}
+
+#closeGameBtn:hover {
+    color: red;
+}
+
+@media only screen and (max-width: 600px) {
+    body {
+        background-size: auto 100%;
+    }
+
+    .container {
+        max-width: 500px;
+        margin: 0 auto;
+        background-color: #cfcfcfc7;
+        border-radius: 10px;
+        padding: 25px;
+        font-size: 20px;
+    }
+
+    input[type="date"] {
+        width: 70%;
+        font-size: 30px;
+        padding: 20px;
+    }
+
+    button {
+        font-size: 30px;
+        width: 70%;
+    }
+
+    p {
+        font-size: 16px;
+        text-align: justify;
+        text-justify: inter-word;
+    }
+
+    .telegram-button-promo {
+        width: 70%;
+        /* Ensure the container can be resized by JavaScript */
+    }
+
+    .telegram-button-promo button {
+        font-size: 20px;
+        width: 100%;
+        /* The button inside should take the full width of its container */
+        padding: 10px;
+        /* Adjust padding for better appearance on mobile */
+    }
+
+    .donate-button button {
+        font-size: 30px;
+        width: 70%;
+    }
+
+    .social-icons img {
+        width: 64px;
+        height: 64px;
+    }
+
+    .creator-text {
+        font-size: 16px;
+    }
+
+    #notificationButton {
+        height: 60px;
+        width: 60px;
+        background-size: 20%;
+        margin-left: 2px;
+    }
+}
