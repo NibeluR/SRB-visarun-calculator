@@ -193,13 +193,15 @@
       obstacles.forEach(ob => {
         const isCar = cars.includes(ob);
         const isBottle = bottles.includes(ob);
-        const paddingX = isCar ? 10 : isBottle ? 10 : 0;
+        const isBox = boxes.includes(ob);
+        const paddingX = isCar || isBottle ? 10 : isBox ? 15 : 0;
+        const paddingY = isCar ? 15 : 0;
 
         if (
           human.x < ob.x + ob.width - paddingX &&
           human.x + human.width > ob.x + paddingX &&
-          human.y < ob.y + ob.height &&
-          human.y + human.height > ob.y
+          human.y < ob.y + ob.height - paddingY &&
+          human.y + human.height > ob.y + paddingY
         ) {
           gameOver = true;
           failSound.play();
@@ -216,6 +218,7 @@
           human.y + human.height > s.y
         ) {
           score += 50;
+          document.getElementById('starSound').volume = 0.3; // Value between 0.0 (mute) and 1.0 (max)
           starSound.play();
           stars.splice(index, 1);
           document.getElementById('score').textContent = 'Очки: ' + score;
@@ -268,6 +271,24 @@
       }
     }
 
+    // Reset game with R button on Desktop on Game Over
+    document.addEventListener('keydown', function (e) {
+      if (e.code === 'KeyR' && gameOver) {
+        resetGame();
+      }
+    });
+
+    // Esc to Exit Game Overlay on Desktop
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        const overlay = document.getElementById('gameOverlay');
+        if (overlay) {
+          overlay.style.display = 'none';
+          gameOver = true; // optionally stop game loop
+        }
+      }
+    });
+
     function resetGame() {
       score = 0;
       gameOver = false;
@@ -284,7 +305,7 @@
     }
 
     document.addEventListener('keydown', e => {
-      if (e.code === 'Space') jump();
+      if (e.code === 'Space' || e.code === 'ArrowUp') jump();
     });
 
     document.addEventListener('touchstart', () => jump());
