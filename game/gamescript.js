@@ -37,6 +37,9 @@
     const jumpSound = document.getElementById('jumpSound');
     const starSound = document.getElementById('starSound');
     const failSound = document.getElementById('failSound');
+    
+    const humanImg = new Image();
+      humanImg.src = 'game/human.png';
 
     const human = {
       x: 50,
@@ -162,33 +165,38 @@
       if (!gameOver && gameStarted) spawnCloud();
     }, 3000);
 
-    function update() {
+    function update(deltaTime) {
       if (gameOver || !gameStarted) return;
-
-      human.velocityY += human.gravity;
-      human.y += human.velocityY;
-
+    
+      // Jump Physics
+      human.velocityY += human.gravity * deltaTime * 60; // умножаем на 60, чтобы сохранить прежнюю "силу"
+      human.y += human.velocityY * deltaTime * 60;
+    
       if (human.y >= 150) {
         human.y = 150;
         human.velocityY = 0;
         human.isJumping = false;
       }
-
-      bottles.forEach(b => b.x -= 6);
+    
+      // Move objects considering Deltatime
+      const speed = 6 * deltaTime * 60; // Normalize speed
+    
+      bottles.forEach(b => b.x -= speed);
       bottles = bottles.filter(b => b.x + b.width > 0);
-
-      cars.forEach(c => c.x -= 6);
+    
+      cars.forEach(c => c.x -= speed);
       cars = cars.filter(c => c.x + c.width > 0);
-
-      stars.forEach(s => s.x -= 6);
+    
+      stars.forEach(s => s.x -= speed);
       stars = stars.filter(s => s.x + s.width > 0);
-
-      boxes.forEach(b => b.x -= 6);
+    
+      boxes.forEach(b => b.x -= speed);
       boxes = boxes.filter(b => b.x + b.width > 0);
-
-      clouds.forEach(cloud => cloud.x -= cloud.speed);
+    
+      clouds.forEach(cloud => cloud.x -= cloud.speed * deltaTime * 60);
       clouds = clouds.filter(cloud => cloud.x + cloud.width > 0);
-
+    
+      // Collisions
       const obstacles = [...bottles, ...cars, ...boxes];
       obstacles.forEach(ob => {
         const isCar = cars.includes(ob);
@@ -196,7 +204,7 @@
         const isBox = boxes.includes(ob);
         const paddingX = isCar || isBottle ? 10 : isBox ? 15 : 0;
         const paddingY = isCar ? 15 : 0;
-
+    
         if (
           human.x < ob.x + ob.width - paddingX &&
           human.x + human.width > ob.x + paddingX &&
@@ -209,6 +217,23 @@
           document.getElementById('finalScore').textContent = 'Доездились! Твой счет: ' + score;
         }
       });
+    
+      stars.forEach((s, index) => {
+        if (
+          human.x < s.x + s.width &&
+          human.x + human.width > s.x &&
+          human.y < s.y + s.height &&
+          human.y + human.height > s.y
+        ) {
+          score += 50;
+          document.getElementById('starSound').volume = 0.3;
+          starSound.play();
+          stars.splice(index, 1);
+          document.getElementById('score').textContent = 'Очки: ' + score;
+        }
+      });
+    }
+    
 
       stars.forEach((s, index) => {
         if (
@@ -224,7 +249,7 @@
           document.getElementById('score').textContent = 'Очки: ' + score;
         }
       });
-    }
+    
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -236,8 +261,7 @@
       ctx.fillStyle = '#654321';
       ctx.fillRect(0, 190, canvas.width, 10);
 
-      const humanImg = new Image();
-      humanImg.src = 'game/human.png';
+      
       ctx.drawImage(humanImg, human.x, human.y, human.width, human.height);
 
       bottles.forEach(b => {
@@ -289,9 +313,21 @@
       }
     });
 
+    let lastFrameTime = performance.now();
+
+    function gameLoop(currentTime) {
+      const deltaTime = (currentTime - lastFrameTime) / 1000; // in seconds
+      lastFrameTime = currentTime;
+
+      update(deltaTime);
+      draw();
+      if (!gameOver) requestAnimationFrame(gameLoop);
+    }
+
     function resetGame() {
       score = 0;
       gameOver = false;
+      gameStarted = true;
       bottles = [];
       cars = [];
       stars = [];
@@ -301,7 +337,8 @@
       human.isJumping = false;
       document.getElementById('score').textContent = 'Очки: 0';
       gameOverOverlay.style.display = 'none';
-      gameLoop();
+      lastFrameTime = performance.now();
+      requestAnimationFrame(gameLoop);
     }
 
     document.addEventListener('keydown', e => {
@@ -312,7 +349,8 @@
     startBtn.addEventListener('click', () => {
       gameStarted = true;
       startOverlay.style.display = 'none';
-      gameLoop();
+      lastFrameTime = performance.now();
+      requestAnimationFrame(gameLoop);
     });
 
     setInterval(() => {
