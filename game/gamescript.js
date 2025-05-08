@@ -226,7 +226,7 @@
           human.y + human.height > s.y
         ) {
           score += 50;
-          document.getElementById('starSound').volume = 0.3;
+          document.getElementById('starSound').volume = 0.2;
           starSound.play();
           stars.splice(index, 1);
           document.getElementById('score').textContent = 'Очки: ' + score;
