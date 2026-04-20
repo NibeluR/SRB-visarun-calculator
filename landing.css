@@ -402,3 +402,32 @@ p {
         margin-left: 2px;
     }
 }
+
+    #rotateNotice {
+    pointer-events: none;
+    }
+
+    #closeOverlayBtn:hover {
+    background: rgba(0,0,0,0.9);
+    }
+
+    #closeOverlayBtn {
+    display: none;
+    }
+
+    @media only screen and (max-width: 768px) {
+    #closeOverlayBtn {
+        display: block;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2000;
+        font-size: 24px;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+    }
+    }

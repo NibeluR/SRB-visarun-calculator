@@ -215,6 +215,9 @@ END:VCALENDAR`;
 
 <!--Mini game block-->
 <div id="gameOverlay" class="hidden">
+
+  <button id="closeOverlayBtn">✖</button>
+
   <div id="rotateNotice">
     Поверните телефон в горизонтальное положение.
     <img src="game/rotate.png" alt="Rotate Icon">
@@ -244,11 +247,11 @@ END:VCALENDAR`;
   </div>
 </div>
 
-<!-- Closing overlay-->
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const openBtn = document.getElementById('openGameBtn');
     const closeBtn = document.getElementById('closeGameBtn');
+    const closeOverlayBtn = document.getElementById('closeOverlayBtn');
     const overlay = document.getElementById('gameOverlay');
 
     overlay.style.display = 'none';
@@ -258,6 +261,10 @@ END:VCALENDAR`;
     });
 
     closeBtn.addEventListener('click', function () {
+      overlay.style.display = 'none';
+    });
+
+    closeOverlayBtn.addEventListener('click', function () {
       overlay.style.display = 'none';
     });
   });
