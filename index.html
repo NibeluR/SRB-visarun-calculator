@@ -6,7 +6,6 @@
   <!-- Option 1: Include in HTML -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="landing.css">
-  <link rel="stylesheet" href="game/gamestyles.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Калькулятор визарана для туристов и нерезидентов из СНГ в Сербии">
   <meta name="author" content="Denis Bykovski">
@@ -220,11 +219,10 @@ END:VCALENDAR`;
 
   <div id="rotateNotice">
     Поверните телефон в горизонтальное положение.
-    <img src="game/rotate.png" alt="Rotate Icon">
+    <img src="game/rotate.png" alt="Rotate Icon" loading="lazy">
   </div>
   <div id="gameContainer">
     <button id="closeGameBtn">❌</button>
-    <script src="game/gamescript.js" defer></script>
     <!--Game canvas-->
 
       <div id="score">Очки: 0</div>
@@ -240,9 +238,9 @@ END:VCALENDAR`;
       </div>
 
     <!-- Sound effects-->
-    <audio id="jumpSound" src="game/jump.wav"></audio>
-    <audio id="starSound" src="game/star.wav"></audio>
-    <audio id="failSound" src="game/fail.wav"></audio>
+      <audio id="jumpSound" src="game/jump.wav" preload="none"></audio>
+      <audio id="starSound" src="game/star.wav" preload="none"></audio>
+      <audio id="failSound" src="game/fail.wav" preload="none"></audio>
 
   </div>
 </div>
@@ -256,7 +254,27 @@ END:VCALENDAR`;
 
     overlay.style.display = 'none';
 
+    let gameLoaded = false;
+
+    function loadGameAssets() {
+      if (gameLoaded) return;
+      gameLoaded = true;
+
+      // Load CSS
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'game/gamestyles.css';
+      document.head.appendChild(css);
+
+      // Load JS
+      const script = document.createElement('script');
+      script.src = 'game/gamescript.js';
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+
     openBtn.addEventListener('click', function () {
+      loadGameAssets();
       overlay.style.display = 'flex';
     });
 
