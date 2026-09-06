@@ -136,8 +136,67 @@
       <p>Граждане России и Беларуси могут находиться в Сербии без визы до 30 дней. Чтобы обнулить срок пребывания, достаточно выехать из страны и вернуться обратно. Счетчик 30 дней начнет действовать заново. После прибытия в страну необходимо зарегистрироваться в местном отделении полиции для Белого картона (в гостиницах эту функцию берет на себя администрация).</p>
     </div>
     <div class="donate-button">
-      <button title="Помоги визаранщику и поддержи автора донатом" onclick="window.open('https://www.donationalerts.com/r/nibelur')">Donate</button>
+      <button title="Помоги визаранщику и поддержи автора донатом" onclick="showDonateOverlay()">
+        Donate
+      </button>
     </div>
+
+    <!-- Donate Overlay -->
+    <div class="donate-overlay" id="donateOverlay">
+      <div class="donate-overlay-content">
+
+        <button class="donate-close" onclick="closeDonateOverlay()">✖</button>
+
+        <h2>Поддержать проект</h2>
+        <p>Выберите способ поддержки:</p>
+
+        <div class="donate-option">
+          <a
+            class="donate-option-button"
+            href="https://www.tbank.ru/cf/7Hzly2LlpVD"
+            target="_blank"
+            rel="noopener noreferrer">
+            🇷🇺 Поддержка в рублях
+          </a>
+
+          <span class="donate-info">
+            i
+            <span class="donate-tooltip">
+              Благотворительное пожертвование автору независимого проекта
+            </span>
+          </span>
+        </div>
+
+        <div class="donate-option">
+          <a
+            class="donate-option-button"
+            href="https://www.donationalerts.com/r/nibelur"
+            target="_blank"
+            rel="noopener noreferrer">
+            💵 Поддержка в валюте
+          </a>
+
+          <span class="donate-info">
+            i
+            <span class="donate-tooltip">
+              Благотворительное пожертвование автору независимого проекта в иностранной валюте. Минимальная сумма составляет 1$
+            </span>
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      function showDonateOverlay() {
+        document.getElementById("donateOverlay").style.display = "flex";
+      }
+
+      function closeDonateOverlay() {
+        document.getElementById("donateOverlay").style.display = "none";
+      }
+    </script>
+
     <p class="creator-text">Created by Denis Bykovski 2023-<span id="current-year"></span></p>
     <button id="openGameBtn" title="Игра: Визаранщик">🕹️</button>
     <div class="social-icons">
