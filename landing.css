@@ -11,8 +11,13 @@ body {
     background-attachment: fixed;
     margin: 0;
     min-height: 100vh;
+    box-sizing: border-box;
     display: flex;
     justify-content: center;
+    /* Slightly more room below than above biases the auto-centered
+       container upward, without breaking scroll access if content
+       ever grows taller than the viewport (unlike align-items: center) */
+    padding: 4vh 0 14vh;
 }
 
 h1 {
@@ -553,20 +558,23 @@ p {
         background-size: cover;
         background-attachment: scroll;
         margin: 0;
-        padding: 0;
+        /* Small 2-5% gap on every side so the background image stays visible
+           around the card, instead of the card filling the whole screen */
+        padding: 3vh 3vw;
         box-sizing: border-box;
     }
 
     .container {
         max-width: 500px;
         width: 100%;
-        height: 100dvh;
-        height: 100vh;
+        /* No explicit height: align-items: stretch above fills the
+           space left after body's padding, giving the same gap on
+           top and bottom as the sides */
         overflow-y: auto;
         margin: 0 auto;
         background-color: #cfcfcfc7;
-        border-radius: 0;
-        padding: clamp(32px, 11vw, 52px) clamp(20px, 6vw, 28px);
+        border-radius: 14px;
+        padding: clamp(24px, 8vw, 40px) clamp(20px, 6vw, 28px);
         font-size: clamp(15px, 4vw, 20px);
         box-sizing: border-box;
         display: flex;
