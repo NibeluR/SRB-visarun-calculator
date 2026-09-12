@@ -24,7 +24,11 @@
       }
     }
 
-    window.addEventListener('load', checkOrientation);
+    // This script is injected into the page after the user opens the game,
+    // which is always well after the page's own 'load' event has already
+    // fired - so a 'load' listener here never runs. Check immediately
+    // instead, then keep watching for the player rotating their phone.
+    checkOrientation();
     window.addEventListener('resize', checkOrientation);
     window.addEventListener('orientationchange', checkOrientation);
 	
