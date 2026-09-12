@@ -559,7 +559,7 @@ p {
         margin: 0 auto;
         background-color: #cfcfcfc7;
         border-radius: 10px;
-        padding: clamp(10px, 3vw, 20px);
+        padding: clamp(32px, 11vw, 52px) clamp(16px, 5vw, 24px);
         font-size: clamp(13px, 3.4vw, 18px);
         box-sizing: border-box;
         display: flex;
