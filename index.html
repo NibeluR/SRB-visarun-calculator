@@ -45,6 +45,7 @@
 
     // Function to update the width of telegram-button-promo
     function updatePromoWidth() {
+        if (!telegramPromo) return; // promo block is currently disabled/commented out in the HTML
         const countButtonRect = countButton.getBoundingClientRect();
         let calculatedWidth;
 
@@ -105,13 +106,15 @@
             "Осталось дней: " + daysLeft + ". Вы должны выехать в " + formattedDate;
         document.getElementById("notificationButton").style.display = "block";
 
-        // Save event details
+        // Save event details (reminder is set for 9:00 AM on the deadline day)
+        const eventStartDate = new Date(leaveDate);
+        eventStartDate.setHours(9, 0, 0, 0);
         window.eventDetails = {
             title: "Визаран - обновление визового срока",
             description: "Вы запланировали выезд из страны на " + leaveDate.toDateString(),
             location: "Сербия",
-            startDate: leaveDate,
-            endDate: new Date(leaveDate.getTime() + 60 * 60 * 1000) // 1-hour event
+            startDate: eventStartDate,
+            endDate: new Date(eventStartDate.getTime() + 60 * 60 * 1000) // 1-hour event at 9:00 AM
         };
     }
 
@@ -223,10 +226,23 @@
       a.href = blobUrl;
       a.download = "event.ics";
       document.body.appendChild(a);
-      alert("Файл события сохранен. Пожалуйста, используйте приложение Календаря (рекомендуется ПК) чтобы внести запланированное событие.");
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(blobUrl);
+      showToast("Файл события сохранен. Пожалуйста, используйте приложение Календаря (рекомендуется ПК) чтобы внести запланированное событие.");
+    }
+
+    // In-page toast notification (replaces browser alert())
+    let toastTimeoutId;
+    function showToast(message, duration = 3500) {
+      const toast = document.getElementById("toastNotification");
+      if (!toast) return;
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimeoutId);
+      toastTimeoutId = setTimeout(() => {
+        toast.classList.remove("show");
+      }, duration);
     }
 
     function generateICSFile(eventTitle, eventDescription, eventLocation, startDate, endDate) {
@@ -350,6 +366,9 @@ END:VCALENDAR`;
 <script>
   document.getElementById("current-year").textContent = new Date().getFullYear();
 </script>
+
+<!-- In-page toast notification -->
+<div id="toastNotification" class="toast-notification" role="status" aria-live="polite"></div>
 
 </body>
 </html>

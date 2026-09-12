@@ -1,3 +1,7 @@
+html, body {
+    height: 100%;
+}
+
 body {
     font-family: Arial, sans-serif;
     background-image: url(background.jpg);
@@ -500,36 +504,98 @@ p {
     color: red;
 }
 
+/* Toast notification (replaces browser alert()) */
+.toast-notification {
+    visibility: hidden;
+    opacity: 0;
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translate(-50%, 12px);
+    max-width: 90vw;
+    width: max-content;
+    background-color: #2e2e2e;
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    z-index: 4000;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast-notification.show {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
 @media only screen and (max-width: 600px) {
+    html, body {
+        height: 100%;
+        overflow: hidden;
+        /* Keep the whole page within one screen - no scrolling on mobile */
+    }
+
     body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background-size: cover;
         background-attachment: scroll;
+        margin: 0;
+        padding: 8px;
+        box-sizing: border-box;
     }
 
     .container {
         max-width: 500px;
+        width: 100%;
+        max-height: 100dvh;
+        max-height: 100vh;
+        overflow-y: auto;
         margin: 0 auto;
         background-color: #cfcfcfc7;
         border-radius: 10px;
-        padding: 25px;
-        font-size: 20px;
+        padding: clamp(10px, 3vw, 20px);
+        font-size: clamp(13px, 3.4vw, 18px);
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: clamp(4px, 1.5vw, 10px);
     }
 
-    input[type="date"] {
-        width: 70%;
-        font-size: 30px;
-        padding: 20px;
+    h1 {
+        font-size: clamp(1rem, 4.4vw, 1.3rem);
+        margin: 0 0 2px 0;
+    }
+
+    .date-container {
+        margin: 6px auto;
+    }
+
+    input[type="date"],
+    input[type="text"] {
+        width: 80%;
+        font-size: clamp(14px, 3.6vw, 18px);
+        padding: clamp(8px, 2vw, 14px);
+        margin-bottom: 0;
     }
 
     button {
-        font-size: 30px;
+        font-size: clamp(14px, 3.6vw, 18px);
         width: 70%;
+        padding: clamp(8px, 2vw, 12px);
     }
 
     p {
-        font-size: 16px;
+        font-size: clamp(11px, 2.8vw, 14px);
+        line-height: 1.3;
         text-align: justify;
         text-justify: inter-word;
+        margin: 4px 0;
     }
 
     .telegram-button-promo {
@@ -538,32 +604,49 @@ p {
     }
 
     .telegram-button-promo button {
-        font-size: 20px;
+        font-size: clamp(12px, 3.2vw, 16px);
         width: 100%;
         /* The button inside should take the full width of its container */
-        padding: 10px;
+        padding: 8px;
         /* Adjust padding for better appearance on mobile */
     }
 
     .donate-button button {
-        font-size: 30px;
+        font-size: clamp(14px, 3.6vw, 18px);
         width: 70%;
     }
 
+    .social-icons {
+        margin-top: 6px;
+    }
+
     .social-icons img {
-        width: 64px;
-        height: 64px;
+        width: 34px;
+        height: 34px;
     }
 
     .creator-text {
-        font-size: 16px;
+        font-size: clamp(10px, 2.6vw, 13px);
+        padding-top: 4px;
+    }
+
+    #openGameBtn {
+        width: 38px;
+        height: 38px;
+        font-size: 18px;
     }
 
     #notificationButton {
-        height: 60px;
-        width: 60px;
+        height: 42px;
+        width: 42px;
         background-size: 20%;
         margin-left: 2px;
+    }
+
+    .toast-notification {
+        font-size: 13px;
+        padding: 10px 14px;
+        bottom: 14px;
     }
 }
 
