@@ -219,6 +219,7 @@
           failSound.play();
           gameOverOverlay.style.display = 'flex';
           document.getElementById('finalScore').textContent = 'Доездились! Твой счет: ' + score;
+          prepareScoreSubmitUI();
         }
       });
     
@@ -295,6 +296,11 @@
       if (!human.isJumping && gameStarted) {
         human.velocityY = human.jumpPower;
         human.isJumping = true;
+        // Rewind before playing: if the previous jump's sound hasn't
+        // finished yet, calling play() alone is a no-op (the browser just
+        // lets the existing playback continue), so no sound is heard for
+        // this jump. Resetting currentTime forces it to retrigger every time.
+        jumpSound.currentTime = 0;
         jumpSound.play();
       }
     }
@@ -326,6 +332,74 @@
       update(deltaTime);
       draw();
       if (!gameOver) requestAnimationFrame(gameLoop);
+    }
+
+    // Reset the "submit to leaderboard" UI for a fresh game-over screen:
+    // re-enable the input/button (in case they were left disabled from a
+    // previous run) and pre-fill the name field with whatever the player
+    // used last time, purely as a local convenience (not part of the
+    // shared leaderboard data itself).
+    function prepareScoreSubmitUI() {
+      const nameInput = document.getElementById('playerNameInput');
+      const submitBtn = document.getElementById('submitScoreBtn');
+      const status = document.getElementById('scoreSubmitStatus');
+      if (!nameInput || !submitBtn || !status) return;
+
+      try {
+        const savedName = localStorage.getItem('visarunPlayerName');
+        if (savedName) nameInput.value = savedName;
+      } catch (e) {
+        // localStorage can be unavailable (private mode, disabled) - fine to skip
+      }
+
+      nameInput.disabled = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'В таблицу🏆';
+      status.textContent = '';
+    }
+
+    function submitScoreToLeaderboard() {
+      const nameInput = document.getElementById('playerNameInput');
+      const submitBtn = document.getElementById('submitScoreBtn');
+      const status = document.getElementById('scoreSubmitStatus');
+      if (!nameInput || !submitBtn || !status) return;
+
+      let name = nameInput.value.trim().slice(0, 15);
+      if (!name) name = 'Anonymous';
+
+      try {
+        localStorage.setItem('visarunPlayerName', name);
+      } catch (e) {
+        // ignore if storage isn't available
+      }
+
+      submitBtn.disabled = true;
+      nameInput.disabled = true;
+      status.textContent = 'Отправка...';
+
+      fetch(window.LEADERBOARD_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, score: score })
+      })
+        .then((res) => {
+          if (!res.ok) {
+            return res.json().then((data) => {
+              throw new Error((data && data.error) || 'Request failed');
+            });
+          }
+          return res.json();
+        })
+        .then(() => {
+          status.textContent = 'Результат сохранен!';
+        })
+        .catch((err) => {
+          console.error('Failed to submit score:', err);
+          status.textContent = 'Не удалось отправить результат.';
+          // Allow the player to retry
+          submitBtn.disabled = false;
+          nameInput.disabled = false;
+        });
     }
 
     function resetGame() {

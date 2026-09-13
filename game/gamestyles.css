@@ -84,6 +84,44 @@ canvas {
   border-radius: 10px;
 }
 
+#scoreSubmitRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+#scoreSubmitRow button {
+  /* Sits inline in the row instead of the generic #gameOverOverlay
+     button's stacked margin-top */
+  margin-top: 0;
+  font-size: 16px;
+  padding: 8px 14px;
+}
+
+#scoreSubmitRow button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#playerNameInput {
+  font-size: 16px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  width: 140px;
+  text-align: center;
+}
+
+#scoreSubmitStatus {
+  font-size: 14px;
+  color: white;
+  margin-top: 6px;
+  min-height: 18px;
+}
+
 #rotateNotice {
   display: none;
   position: center;

@@ -403,6 +403,84 @@ button:hover {
     transition-duration: 2s;
 }
 
+.footer-icons-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Override the generic button's margin:0 auto so the row's own
+   justify-content/gap controls spacing instead of each button trying
+   to auto-center itself independently */
+.footer-icons-row button {
+    margin: 0;
+}
+
+#openLeaderboardBtn {
+    background-color: #ffd54f;
+    font-size: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 50px;
+    height: 50px;
+}
+
+#openLeaderboardBtn:hover {
+    background-color: #f5b400;
+    transition-duration: 0.5s;
+}
+
+/* Leaderboard popup list (shares .donate-overlay / .donate-overlay-content
+   for the backdrop and card styling) */
+.leaderboard-list {
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.leaderboard-entry {
+    display: flex;
+    align-items: center;
+    padding: 8px 6px;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+}
+
+.leaderboard-entry:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-rank {
+    font-weight: bold;
+    width: 32px;
+    flex-shrink: 0;
+    color: #777;
+}
+
+.leaderboard-name {
+    flex: 1;
+    margin: 0 8px;
+    overflow-wrap: anywhere;
+    text-align: left;
+}
+
+.leaderboard-score {
+    font-weight: bold;
+    color: #2e8631;
+    flex-shrink: 0;
+}
+
+.leaderboard-status {
+    text-align: center;
+    color: #666;
+    padding: 10px 0;
+    font-size: 15px;
+}
+
 h1,
 p {
     -webkit-touch-callout: none;
@@ -651,10 +729,19 @@ p {
         padding-top: 4px;
     }
 
-    #openGameBtn {
+    #openGameBtn,
+    #openLeaderboardBtn {
         width: 42px;
         height: 42px;
         font-size: 20px;
+    }
+
+    .footer-icons-row {
+        gap: 10px;
+    }
+
+    .leaderboard-list {
+        max-height: 45vh;
     }
 
     #notificationButton {

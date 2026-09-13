@@ -200,8 +200,91 @@
       }
     </script>
 
+    <!-- Leaderboard overlay -->
+    <div class="donate-overlay" id="leaderboardOverlay">
+      <div class="donate-overlay-content">
+        <button class="donate-close" onclick="closeLeaderboard()">✖</button>
+        <h2>🏆 Таблица лидеров</h2>
+        <div id="leaderboardList" class="leaderboard-list">
+          <p class="leaderboard-status">Загрузка...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // TODO: replace with your deployed leaderboard API's base URL once
+      // it's live on your VPS (see leaderboard-server/README.md), e.g.
+      // "https://leaderboard-api.yourdomain.com/api/leaderboard"
+      window.LEADERBOARD_API_URL = "https://YOUR-LEADERBOARD-API-DOMAIN/api/leaderboard";
+
+      function openLeaderboard() {
+        document.getElementById("leaderboardOverlay").style.display = "flex";
+        fetchLeaderboard();
+      }
+
+      function closeLeaderboard() {
+        document.getElementById("leaderboardOverlay").style.display = "none";
+      }
+
+      function renderLeaderboardList(entries) {
+        const list = document.getElementById("leaderboardList");
+        list.innerHTML = "";
+
+        if (!entries || entries.length === 0) {
+          const empty = document.createElement("p");
+          empty.className = "leaderboard-status";
+          empty.textContent = "Пока никто не сыграл. Будь первым!";
+          list.appendChild(empty);
+          return;
+        }
+
+        entries.forEach((entry, index) => {
+          const row = document.createElement("div");
+          row.className = "leaderboard-entry";
+
+          const rank = document.createElement("span");
+          rank.className = "leaderboard-rank";
+          rank.textContent = "#" + (index + 1);
+
+          const name = document.createElement("span");
+          name.className = "leaderboard-name";
+          // textContent (never innerHTML) - untrusted player names must
+          // never be interpreted as HTML.
+          name.textContent = entry.name;
+
+          const score = document.createElement("span");
+          score.className = "leaderboard-score";
+          score.textContent = entry.score;
+
+          row.appendChild(rank);
+          row.appendChild(name);
+          row.appendChild(score);
+          list.appendChild(row);
+        });
+      }
+
+      function fetchLeaderboard() {
+        const list = document.getElementById("leaderboardList");
+        list.innerHTML = '<p class="leaderboard-status">Загрузка...</p>';
+
+        fetch(window.LEADERBOARD_API_URL)
+          .then((res) => {
+            if (!res.ok) throw new Error("Bad response: " + res.status);
+            return res.json();
+          })
+          .then((entries) => renderLeaderboardList(entries))
+          .catch((err) => {
+            console.error("Failed to load leaderboard:", err);
+            list.innerHTML = '<p class="leaderboard-status">Таблица лидеров временно недоступна. Попробуйте позже.</p>';
+          });
+      }
+    </script>
+
     <p class="creator-text">Created by Denis Bykovski 2023-<span id="current-year"></span></p>
-    <button id="openGameBtn" title="Игра: Визаранщик">🕹️</button>
+    <div class="footer-icons-row">
+      <button id="openGameBtn" title="Игра: Визаранщик">🕹️</button>
+      <button id="openLeaderboardBtn" title="Таблица лидеров" onclick="openLeaderboard()">🏆</button>
+    </div>
     <div class="social-icons">
       <a rel="nofollow" href="https://t.me/nibelur"><img src="telegram.png" alt="Telegram"></a>
       <a rel="nofollow" href="https://github.com/NibeluR"><img src="github.png" alt="GitHub"></a>
@@ -303,6 +386,11 @@ END:VCALENDAR`;
       <div id="score">Очки: 0</div>
       <div id="gameOverOverlay">
         <div id="finalScore">Приехали!</div>
+        <div id="scoreSubmitRow">
+          <input type="text" id="playerNameInput" maxlength="15" placeholder="Ваше имя">
+          <button id="submitScoreBtn" onclick="submitScoreToLeaderboard()">В таблицу🏆</button>
+        </div>
+        <div id="scoreSubmitStatus"></div>
         <button onclick="resetGame()">Перезапуск🔄️</button>
       </div>
       <canvas id="gameCanvas" width="800" height="200"></canvas>
