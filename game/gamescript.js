@@ -334,17 +334,32 @@
       if (!gameOver) requestAnimationFrame(gameLoop);
     }
 
+    // Keep in sync with MIN_SCORE_TO_SAVE on the leaderboard server - this
+    // is just for a friendlier UI (hiding the form instead of letting
+    // someone submit and then get a rejection). The server enforces the
+    // real limit regardless of what happens here.
+    const MIN_LEADERBOARD_SCORE = 100;
+
     // Reset the "submit to leaderboard" UI for a fresh game-over screen:
     // re-enable the input/button (in case they were left disabled from a
     // previous run) and pre-fill the name field with whatever the player
     // used last time, purely as a local convenience (not part of the
-    // shared leaderboard data itself).
+    // shared leaderboard data itself). If the score doesn't meet the
+    // minimum, hide the form entirely instead of letting them try.
     function prepareScoreSubmitUI() {
       const nameInput = document.getElementById('playerNameInput');
       const submitBtn = document.getElementById('submitScoreBtn');
       const status = document.getElementById('scoreSubmitStatus');
-      if (!nameInput || !submitBtn || !status) return;
+      const row = document.getElementById('scoreSubmitRow');
+      if (!nameInput || !submitBtn || !status || !row) return;
 
+      if (score < MIN_LEADERBOARD_SCORE) {
+        row.style.display = 'none';
+        status.textContent = 'Минимум ' + MIN_LEADERBOARD_SCORE + ' очков, чтобы попасть в таблицу лидеров.';
+        return;
+      }
+
+      row.style.display = '';
       try {
         const savedName = localStorage.getItem('visarunPlayerName');
         if (savedName) nameInput.value = savedName;
@@ -363,6 +378,13 @@
       const submitBtn = document.getElementById('submitScoreBtn');
       const status = document.getElementById('scoreSubmitStatus');
       if (!nameInput || !submitBtn || !status) return;
+
+      // Defense in depth - the UI should already be hidden for a score
+      // this low (see prepareScoreSubmitUI), but never trust just the UI.
+      if (score < MIN_LEADERBOARD_SCORE) {
+        status.textContent = 'Минимум ' + MIN_LEADERBOARD_SCORE + ' очков, чтобы попасть в таблицу лидеров.';
+        return;
+      }
 
       let name = nameInput.value.trim().slice(0, 15);
       if (!name) name = 'Anonymous';

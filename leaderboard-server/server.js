@@ -27,6 +27,9 @@
 //                     with no accounts/auth, a determined visitor could
 //                     still post fake scores. There is no way to fully
 //                     prevent that without real authentication.
+//   MIN_SCORE_TO_SAVE - scores below this are rejected outright (default
+//                     100), so a fresh/interrupted run doesn't clutter
+//                     the leaderboard.
 
 const express = require('express');
 const cors = require('cors');
@@ -42,6 +45,7 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 const MAX_ENTRIES = parseInt(process.env.MAX_ENTRIES || '50', 10);
 const TOP_N = parseInt(process.env.TOP_N || '10', 10);
 const MIN_SUBMIT_INTERVAL_MS = parseInt(process.env.MIN_SUBMIT_INTERVAL_MS || '5000', 10);
+const MIN_SCORE_TO_SAVE = parseInt(process.env.MIN_SCORE_TO_SAVE || '100', 10);
 const MAX_NAME_LENGTH = 15;
 const MAX_SCORE = 1000000; // sanity ceiling - anything above this is rejected as bogus
 
@@ -167,6 +171,13 @@ app.post('/api/leaderboard', async (req, res) => {
   score = Math.floor(score);
   if (!Number.isFinite(score) || score < 0 || score > MAX_SCORE) {
     return res.status(400).json({ error: 'Score out of range.' });
+  }
+
+  if (score < MIN_SCORE_TO_SAVE) {
+    return res.status(400).json({
+      error: `Score must be at least ${MIN_SCORE_TO_SAVE} to be saved.`,
+      minScore: MIN_SCORE_TO_SAVE
+    });
   }
 
   // Collapse any pre-existing duplicates first, then look for this name
