@@ -1,8 +1,14 @@
 // Tiny leaderboard API - no database, just a JSON file on disk.
 //
+// One entry per name (case-insensitive, trimmed) - it holds that player's
+// personal best. A new submission only replaces it if the new score is
+// higher; equal or lower scores are accepted (200 OK) but not saved, and
+// any duplicate names already on disk are cleaned up automatically.
+//
 // Endpoints:
 //   GET  /api/leaderboard        -> top N entries, sorted by score desc
-//   POST /api/leaderboard        -> { name, score } - validates, appends, re-sorts, trims
+//   POST /api/leaderboard        -> { name, score } - validates, keeps the
+//                                    higher of (new score, existing best)
 //   GET  /health                 -> { ok: true } (for Coolify/uptime checks)
 //
 // Configuration (all optional, via environment variables):
@@ -65,6 +71,22 @@ function readEntries() {
   }
 }
 
+// One name = one entry (its personal best). Names are matched trimmed and
+// case-insensitively, so "Denis" and "denis" collapse to the same player.
+// Sorted descending by score.
+function dedupeKeepBest(entries) {
+  const bestByName = new Map();
+  for (const entry of entries) {
+    if (!entry || typeof entry.name !== 'string' || typeof entry.score !== 'number') continue;
+    const key = entry.name.trim().toLowerCase();
+    const existing = bestByName.get(key);
+    if (!existing || entry.score > existing.score) {
+      bestByName.set(key, entry);
+    }
+  }
+  return Array.from(bestByName.values()).sort((a, b) => b.score - a.score);
+}
+
 // Serialize writes through a single promise chain so two near-simultaneous
 // submissions can't race and clobber each other's data.
 let writeChain = Promise.resolve();
@@ -74,6 +96,19 @@ function writeEntries(entries) {
   );
   return writeChain;
 }
+
+// One-time cleanup on boot: if the file already has duplicate names (from
+// before this rule existed, or from any external edit), collapse them down
+// to one best-score entry per name and persist that immediately.
+(function migrateExistingDuplicates() {
+  const current = readEntries();
+  const deduped = dedupeKeepBest(current);
+  if (deduped.length !== current.length) {
+    writeEntries(deduped)
+      .then(() => console.log(`Startup cleanup: removed ${current.length - deduped.length} duplicate name entr${current.length - deduped.length === 1 ? 'y' : 'ies'}.`))
+      .catch((err) => console.error('Startup dedupe cleanup failed:', err.message));
+  }
+})();
 
 // --- Extremely small in-memory rate limiter ---------------------------
 // Per-IP, in-process only (resets on restart, not shared across multiple
@@ -107,10 +142,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/leaderboard', (req, res) => {
-  const top = readEntries()
-    .slice()
-    .sort((a, b) => b.score - a.score)
-    .slice(0, TOP_N);
+  const top = dedupeKeepBest(readEntries()).slice(0, TOP_N);
   res.json(top);
 });
 
@@ -137,19 +169,48 @@ app.post('/api/leaderboard', async (req, res) => {
     return res.status(400).json({ error: 'Score out of range.' });
   }
 
-  const entries = readEntries();
-  entries.push({ name, score, date: new Date().toISOString() });
-  entries.sort((a, b) => b.score - a.score);
-  const trimmed = entries.slice(0, MAX_ENTRIES);
+  // Collapse any pre-existing duplicates first, then look for this name
+  // (case-insensitive, trimmed) among the clean set.
+  const deduped = dedupeKeepBest(readEntries());
+  const key = name.toLowerCase();
+  const existingIndex = deduped.findIndex((e) => e.name.trim().toLowerCase() === key);
+
+  let saved;
+  let bestScore = score;
+
+  if (existingIndex === -1) {
+    // New name - always saved.
+    deduped.push({ name, score, date: new Date().toISOString() });
+    saved = true;
+  } else if (score > deduped[existingIndex].score) {
+    // Beat their own previous best - replace it.
+    deduped[existingIndex] = { name, score, date: new Date().toISOString() };
+    saved = true;
+  } else {
+    // Existing score for this name is already equal or higher - don't
+    // create a duplicate entry, leave the leaderboard as-is.
+    saved = false;
+    bestScore = deduped[existingIndex].score;
+  }
+
+  deduped.sort((a, b) => b.score - a.score);
+  const trimmed = deduped.slice(0, MAX_ENTRIES);
 
   try {
+    // Persist even when this particular submission wasn't saved, so any
+    // cleanup from dedupeKeepBest() above still lands on disk.
     await writeEntries(trimmed);
   } catch (err) {
     console.error('Failed to persist leaderboard:', err.message);
     return res.status(500).json({ error: 'Could not save score, please try again.' });
   }
 
-  res.json({ success: true, top: trimmed.slice(0, TOP_N) });
+  res.json({
+    success: saved,
+    bestScore: bestScore,
+    message: saved ? null : 'A better or equal score already exists for this name.',
+    top: trimmed.slice(0, TOP_N)
+  });
 });
 
 app.listen(PORT, () => {

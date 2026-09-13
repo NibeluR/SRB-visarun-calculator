@@ -390,8 +390,17 @@
           }
           return res.json();
         })
-        .then(() => {
-          status.textContent = 'Результат сохранен!';
+        .then((data) => {
+          if (data && data.success === false) {
+            // Name already has an equal or higher score saved - nothing new
+            // was written, but this isn't a failure, so let them try again
+            // (e.g. under a different name) rather than leaving it disabled.
+            status.textContent = 'У вас уже есть результат не хуже: ' + data.bestScore;
+            submitBtn.disabled = false;
+            nameInput.disabled = false;
+          } else {
+            status.textContent = 'Результат сохранен!';
+          }
         })
         .catch((err) => {
           console.error('Failed to submit score:', err);
