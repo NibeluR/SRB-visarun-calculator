@@ -448,17 +448,83 @@ button:hover {
     padding: 8px 6px;
     border-bottom: 1px solid #eee;
     font-size: 15px;
+    border-radius: 8px;
 }
 
 .leaderboard-entry:last-child {
     border-bottom: none;
 }
 
+/* Medal backgrounds for the top 3 overall (only ever appear on page 1) */
+.leaderboard-entry.rank-gold {
+    background-color: rgba(255, 215, 0, 0.18);
+}
+
+.leaderboard-entry.rank-silver {
+    background-color: rgba(170, 170, 170, 0.2);
+}
+
+.leaderboard-entry.rank-bronze {
+    background-color: rgba(205, 127, 50, 0.18);
+}
+
 .leaderboard-rank {
     font-weight: bold;
-    width: 32px;
+    min-width: 32px;
     flex-shrink: 0;
     color: #777;
+    text-align: center;
+    padding: 2px 4px;
+    border-radius: 6px;
+}
+
+.leaderboard-entry.rank-gold .leaderboard-rank {
+    background: linear-gradient(135deg, #ffd700, #f5b400);
+    color: #5c4400;
+}
+
+.leaderboard-entry.rank-silver .leaderboard-rank {
+    background: linear-gradient(135deg, #e2e2e2, #b0b0b0);
+    color: #333;
+}
+
+.leaderboard-entry.rank-bronze .leaderboard-rank {
+    background: linear-gradient(135deg, #cd7f32, #a85c28);
+    color: #fff;
+}
+
+.leaderboard-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.leaderboard-pagination button {
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: none;
+    background-color: #f5b400;
+    color: #333;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.leaderboard-pagination button:hover:not(:disabled) {
+    background-color: #e0a300;
+}
+
+.leaderboard-pagination button:disabled {
+    background-color: #eee;
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+.leaderboard-pagination span {
+    font-size: 14px;
+    color: #555;
 }
 
 .leaderboard-name {

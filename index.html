@@ -208,14 +208,27 @@
         <div id="leaderboardList" class="leaderboard-list">
           <p class="leaderboard-status">Загрузка...</p>
         </div>
+        <div id="leaderboardPagination" class="leaderboard-pagination" style="display:none;">
+          <button id="leaderboardPrevBtn" onclick="changeLeaderboardPage(-1)">← Назад</button>
+          <span id="leaderboardPageIndicator">Стр. 1</span>
+          <button id="leaderboardNextBtn" onclick="changeLeaderboardPage(1)">Вперед →</button>
+        </div>
       </div>
     </div>
 
     <script>
       window.LEADERBOARD_API_URL = "https://leaderboard-api.firzj.com/api/leaderboard";
 
+      // Server returns { entries, page, pageSize, total } - pageSize here
+      // just has to match what we ask for, so we keep our own constant
+      // rather than trusting a value from the response.
+      const LEADERBOARD_PAGE_SIZE = 10;
+      let leaderboardPage = 1;
+      let leaderboardTotal = 0;
+
       function openLeaderboard() {
         document.getElementById("leaderboardOverlay").style.display = "flex";
+        leaderboardPage = 1;
         fetchLeaderboard();
       }
 
@@ -223,25 +236,32 @@
         document.getElementById("leaderboardOverlay").style.display = "none";
       }
 
-      function renderLeaderboardList(entries) {
+      function renderLeaderboardList(entries, page) {
         const list = document.getElementById("leaderboardList");
         list.innerHTML = "";
 
         if (!entries || entries.length === 0) {
           const empty = document.createElement("p");
           empty.className = "leaderboard-status";
-          empty.textContent = "Пока никто не сыграл. Будь первым!";
+          empty.textContent = page > 1
+            ? "Больше результатов нет."
+            : "Пока никто не сыграл. Будь первым!";
           list.appendChild(empty);
           return;
         }
 
         entries.forEach((entry, index) => {
+          const rank = (page - 1) * LEADERBOARD_PAGE_SIZE + index + 1;
+
           const row = document.createElement("div");
           row.className = "leaderboard-entry";
+          if (rank === 1) row.classList.add("rank-gold");
+          else if (rank === 2) row.classList.add("rank-silver");
+          else if (rank === 3) row.classList.add("rank-bronze");
 
-          const rank = document.createElement("span");
-          rank.className = "leaderboard-rank";
-          rank.textContent = "#" + (index + 1);
+          const rankEl = document.createElement("span");
+          rankEl.className = "leaderboard-rank";
+          rankEl.textContent = "#" + rank;
 
           const name = document.createElement("span");
           name.className = "leaderboard-name";
@@ -253,26 +273,62 @@
           score.className = "leaderboard-score";
           score.textContent = entry.score;
 
-          row.appendChild(rank);
+          row.appendChild(rankEl);
           row.appendChild(name);
           row.appendChild(score);
           list.appendChild(row);
         });
       }
 
+      function updateLeaderboardPagination() {
+        const pagination = document.getElementById("leaderboardPagination");
+        const indicator = document.getElementById("leaderboardPageIndicator");
+        const prevBtn = document.getElementById("leaderboardPrevBtn");
+        const nextBtn = document.getElementById("leaderboardNextBtn");
+
+        // Only show pagination once there's more than one page's worth of
+        // results - no point showing arrows for a leaderboard of 4 names.
+        if (leaderboardTotal <= LEADERBOARD_PAGE_SIZE) {
+          pagination.style.display = "none";
+          return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(leaderboardTotal / LEADERBOARD_PAGE_SIZE));
+        pagination.style.display = "flex";
+        indicator.textContent = "Стр. " + leaderboardPage + " из " + totalPages;
+        prevBtn.disabled = leaderboardPage <= 1;
+        nextBtn.disabled = leaderboardPage >= totalPages;
+      }
+
+      function changeLeaderboardPage(delta) {
+        const totalPages = Math.max(1, Math.ceil(leaderboardTotal / LEADERBOARD_PAGE_SIZE));
+        const next = leaderboardPage + delta;
+        if (next < 1 || next > totalPages) return;
+        leaderboardPage = next;
+        fetchLeaderboard();
+      }
+
       function fetchLeaderboard() {
         const list = document.getElementById("leaderboardList");
         list.innerHTML = '<p class="leaderboard-status">Загрузка...</p>';
 
-        fetch(window.LEADERBOARD_API_URL)
+        const url = window.LEADERBOARD_API_URL + "?page=" + leaderboardPage + "&pageSize=" + LEADERBOARD_PAGE_SIZE;
+
+        fetch(url)
           .then((res) => {
             if (!res.ok) throw new Error("Bad response: " + res.status);
             return res.json();
           })
-          .then((entries) => renderLeaderboardList(entries))
+          .then((data) => {
+            const entries = (data && data.entries) || [];
+            leaderboardTotal = (data && data.total) || 0;
+            renderLeaderboardList(entries, leaderboardPage);
+            updateLeaderboardPagination();
+          })
           .catch((err) => {
             console.error("Failed to load leaderboard:", err);
             list.innerHTML = '<p class="leaderboard-status">Таблица лидеров временно недоступна. Попробуйте позже.</p>';
+            document.getElementById("leaderboardPagination").style.display = "none";
           });
       }
     </script>

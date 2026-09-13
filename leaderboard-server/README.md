@@ -6,10 +6,14 @@ Serbia Visarun Calculator site.
 
 ## Endpoints
 
-- `GET /api/leaderboard` - returns the top 10 entries, sorted by score
-  descending: `[{ "name": "...", "score": 123, "date": "..." }, ...]`
+- `GET /api/leaderboard` - returns one page of entries, sorted by score
+  descending: `{ "entries": [{ "name": "...", "score": 123, "date": "..." }, ...], "page": 1, "pageSize": 10, "total": 23 }`.
+  Supports `?page=2&pageSize=10` to fetch entries 11-20, and so on -
+  `total` tells the frontend how many pages exist.
 - `POST /api/leaderboard` - body `{ "name": "...", "score": 123 }`, saves
-  the entry and returns the updated top 10.
+  the entry and returns `{ success, bestScore, message, top }`. Rejected
+  with `400` if the name is empty of letters (e.g. `"12345"`) or looks
+  like a link (`http://...`, `www...`, or a bare domain like `foo.com`).
 - `GET /health` - `{ "ok": true }`, for uptime checks.
 
 ## Running locally
@@ -39,8 +43,9 @@ Listens on port 3000 by default. Scores are saved to `./data/leaderboard.json`.
      live, e.g. `https://serbiavisarun.com` (no trailing slash). This
      restricts which websites can call the API via CORS. Leave unset
      (defaults to `*`) only while testing.
-   - `MAX_ENTRIES` - how many scores to keep on disk (default `50`).
-   - `TOP_N` - how many scores the leaderboard shows (default `10`).
+   - `MAX_ENTRIES` - how many scores to keep on disk (default `100`).
+   - `TOP_N` - default page size for GET requests that don't specify
+     `pageSize` (default `10`).
    - `MIN_SUBMIT_INTERVAL_MS` - minimum ms between submissions from the
      same IP (default `5000`).
 5. Expose the container's port `3000` and set up a domain/subdomain for
@@ -66,3 +71,9 @@ Listens on port 3000 by default. Scores are saved to `./data/leaderboard.json`.
   file unless they share the same mounted volume).
 - **In-memory rate limiter resets on restart** and isn't shared across
   multiple replicas, if you ever scale this beyond one container.
+- **Name filtering is pattern-based, not a real URL parser.** It blocks
+  the obvious cases (`http://`, `www.`, "word.com"-shaped names, and
+  names with no letters at all), but a determined user could still slip
+  something through, and a genuinely unlucky name that happens to look
+  like a domain could get rejected. Good enough to stop casual spam
+  links, not a guarantee.

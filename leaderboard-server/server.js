@@ -6,7 +6,10 @@
 // any duplicate names already on disk are cleaned up automatically.
 //
 // Endpoints:
-//   GET  /api/leaderboard        -> top N entries, sorted by score desc
+//   GET  /api/leaderboard        -> { entries, page, pageSize, total },
+//                                    sorted by score desc. Supports
+//                                    ?page=1&pageSize=10 for pagination
+//                                    (page defaults to 1, pageSize to TOP_N).
 //   POST /api/leaderboard        -> { name, score } - validates, keeps the
 //                                    higher of (new score, existing best)
 //   GET  /health                 -> { ok: true } (for Coolify/uptime checks)
@@ -20,8 +23,8 @@
 //                     Once the site is live, set this to the exact site
 //                     origin, e.g. "https://yourdomain.com", to stop other
 //                     sites from submitting/reading through your API.
-//   MAX_ENTRIES     - how many entries to keep on disk (default 50)
-//   TOP_N           - how many entries GET returns (default 10)
+//   MAX_ENTRIES     - how many entries to keep on disk (default 100)
+//   TOP_N           - default page size for GET (default 10)
 //   MIN_SUBMIT_INTERVAL_MS - minimum time between submissions from the
 //                     same IP (default 5000). Basic spam guard only -
 //                     with no accounts/auth, a determined visitor could
@@ -30,6 +33,13 @@
 //   MIN_SCORE_TO_SAVE - scores below this are rejected outright (default
 //                     100), so a fresh/interrupted run doesn't clutter
 //                     the leaderboard.
+//
+// Name rules: a submitted name must contain at least one letter (any
+// language) - so "12345" or "----" are rejected - and must not look like
+// a link (http://, www., or a bare domain like foo.com). This is a plain
+// pattern check, not a real URL parser or profanity filter, so it can
+// have false positives/negatives on unusual input; it's meant to stop the
+// obvious spam cases, not to be airtight.
 
 const express = require('express');
 const cors = require('cors');
@@ -42,7 +52,7 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'leaderboard.json');
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
-const MAX_ENTRIES = parseInt(process.env.MAX_ENTRIES || '50', 10);
+const MAX_ENTRIES = parseInt(process.env.MAX_ENTRIES || '100', 10);
 const TOP_N = parseInt(process.env.TOP_N || '10', 10);
 const MIN_SUBMIT_INTERVAL_MS = parseInt(process.env.MIN_SUBMIT_INTERVAL_MS || '5000', 10);
 const MIN_SCORE_TO_SAVE = parseInt(process.env.MIN_SCORE_TO_SAVE || '100', 10);
@@ -51,6 +61,29 @@ const MAX_SCORE = 1000000; // sanity ceiling - anything above this is rejected a
 
 app.use(express.json());
 app.use(cors({ origin: ALLOWED_ORIGIN }));
+
+// --- Name validation ---------------------------------------------------
+// \p{L} matches a letter in any language (Cyrillic included), so this
+// only rejects names with zero letters at all - "12345", "007", "----".
+// A name like "Player1" or "007James" is fine since it has a letter too.
+const NAME_HAS_LETTER = /\p{L}/u;
+
+// Casual link detector, not a real URL parser: catches "http://", "www.",
+// and bare domains like "foo.com" or "site.rs". Good enough to stop
+// obvious spam/ad links in a 15-character nickname field; can still miss
+// unusual cases or flag an unlucky legitimate name that happens to look
+// like a domain.
+const NAME_LOOKS_LIKE_LINK = /(https?:\/\/|www\.|[a-z0-9-]+\.(com|net|org|io|co|me|info|biz|ru|rs|su|by|ua|xyz|top|site|online|club|shop|store|app|dev|gg|tv|link|click))/i;
+
+function validateName(name) {
+  if (!NAME_HAS_LETTER.test(name)) {
+    return 'Name must contain at least one letter (not just numbers/symbols).';
+  }
+  if (NAME_LOOKS_LIKE_LINK.test(name)) {
+    return 'Name can\'t contain a link.';
+  }
+  return null;
+}
 
 // --- Storage helpers -------------------------------------------------
 
@@ -146,8 +179,20 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/leaderboard', (req, res) => {
-  const top = dedupeKeepBest(readEntries()).slice(0, TOP_N);
-  res.json(top);
+  const all = dedupeKeepBest(readEntries());
+  const total = all.length;
+
+  let page = parseInt(req.query.page, 10);
+  if (!Number.isInteger(page) || page < 1) page = 1;
+
+  let pageSize = parseInt(req.query.pageSize, 10);
+  if (!Number.isInteger(pageSize) || pageSize < 1) pageSize = TOP_N;
+  pageSize = Math.min(pageSize, MAX_ENTRIES); // sanity cap
+
+  const start = (page - 1) * pageSize;
+  const entries = all.slice(start, start + pageSize);
+
+  res.json({ entries, page, pageSize, total });
 });
 
 app.post('/api/leaderboard', async (req, res) => {
@@ -166,6 +211,11 @@ app.post('/api/leaderboard', async (req, res) => {
   name = name.trim().slice(0, MAX_NAME_LENGTH);
   if (name.length === 0) {
     name = 'Anonymous';
+  } else {
+    const nameError = validateName(name);
+    if (nameError) {
+      return res.status(400).json({ error: nameError });
+    }
   }
 
   score = Math.floor(score);

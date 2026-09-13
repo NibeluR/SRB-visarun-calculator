@@ -340,6 +340,13 @@
     // real limit regardless of what happens here.
     const MIN_LEADERBOARD_SCORE = 100;
 
+    // Keep in sync with the same rules on the leaderboard server - again,
+    // this is just for a friendlier UI (instant feedback instead of a
+    // round trip that ends in a rejection). The server enforces the real
+    // rule regardless of what happens here.
+    const NAME_HAS_LETTER = /\p{L}/u;
+    const NAME_LOOKS_LIKE_LINK = /(https?:\/\/|www\.|[a-z0-9-]+\.(com|net|org|io|co|me|info|biz|ru|rs|su|by|ua|xyz|top|site|online|club|shop|store|app|dev|gg|tv|link|click))/i;
+
     // Reset the "submit to leaderboard" UI for a fresh game-over screen:
     // re-enable the input/button (in case they were left disabled from a
     // previous run) and pre-fill the name field with whatever the player
@@ -387,7 +394,15 @@
       }
 
       let name = nameInput.value.trim().slice(0, 15);
-      if (!name) name = 'Anonymous';
+      if (!name) {
+        name = 'Anonymous';
+      } else if (!NAME_HAS_LETTER.test(name)) {
+        status.textContent = 'Имя не должно состоять только из цифр/символов.';
+        return;
+      } else if (NAME_LOOKS_LIKE_LINK.test(name)) {
+        status.textContent = 'Имя не должно содержать ссылку.';
+        return;
+      }
 
       try {
         localStorage.setItem('visarunPlayerName', name);
